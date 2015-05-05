@@ -1,0 +1,878 @@
+
+<html>
+
+<head>
+
+
+    <title> Simple IRCTC</title>
+    <link type="text/css" rel="stylesheet" href="../ext-3.2.1/resources/css/ext-all.css" />
+        <link type="text/css" rel="stylesheet" href="../ext-3.2.1/examples/ux/css/RowEditor.css" />
+    <script type="text/javascript" src="../ext-3.2.1/adapter/ext/ext-base.js"></script>
+    <script type="text/javascript" src="../ext-3.2.1/ext-all.js"></script>
+    <script type="text/javascript" src="../ext-3.2.1/examples/ux/RowEditor.js"></script>
+
+    <style>
+        
+
+    </style>
+    <script type="text/javascript">
+        
+         var users = [
+                {usr : 'Sangam1', pwd : '1' },{usr : 'Sangam2', pwd : '2'}];
+        
+            
+                
+  var Product = Ext.data.Record.create([
+                {name: "productId", type: "int", mapping: "PRODUCT_ID"},
+                {name: "productName", type: "string", mapping: "PRODUCT_NAME"},
+                {name: "quantityPerUnit", type: "string", mapping: "QUANTITY_PER_UNIT"},
+                {name: "categoryId", type: "int", mapping: "CATEGORY_ID"},
+                {name: "supplierId", type: "int", mapping: "SUPPLIER_ID"},
+                {name: "unitPrice", type: "float", mapping: "UNIT_PRICE"},
+                {name: "unitsInStock", type: "int", mapping: "UNITS_IN_STOCK"},
+                {name: "unitsOnOrder", type: "int", mapping: "UNITS_ON_ORDER"},
+                {name: "reorderLevel", type: "int", mapping: "REORDER_LEVEL"},
+                {name: "discontinued", type: "int", mapping: "DISCONTINUED"}
+            ]);
+
+        
+        var productStore = new Ext.data.Store({
+           
+            url : "http://172.27.40.72:82/products",
+            restful : true,
+            
+            autoLoad :true, //reader is necessary
+            reader : new Ext.data.JsonReader ({
+
+            idProperty : "PRODUCT_ID",
+                successProperty: "success",
+                fields : Product,
+                root : "data"
+            
+            
+            }),
+            
+            writer : new Ext.data.JsonWriter ({
+            encode : false,
+            writeAllFields: true
+            }),
+            
+            autoSave :true //Writer is necessary (for add, save and delete)
+            
+            
+        });
+           
+       
+        
+        var rowEditor = new Ext.ux.grid.RowEditor();
+        
+        var productGrid = new Ext.grid.GridPanel({
+        store: productStore,
+           anchor: 'right 100%',
+            
+            plugins: [rowEditor],
+            
+            listeners : {
+            
+            celldblclick : function (self, r, c, evt)
+                {
+                
+                
+                    var sm =  self.getSelectionModel();
+                    
+                    var rec  =  sm.getSelected();
+                    
+                    console.log(rec.data);
+                
+                }
+            
+            },
+           
+        columns: [
+            
+            new Ext.grid.RowNumberer(),
+            
+            {
+                header   : 'Product Name', 
+                width    : 75, 
+                sortable : true, 
+                dataIndex: 'productName',
+                editor : {
+                xtype : 'textfield'
+                ,
+                    
+                    listeners : {
+            
+            focus : function ()
+                {
+                
+                
+                    
+                    console.log('focussed');
+                
+                }
+            
+            }
+                
+                
+                }
+            },
+        
+        {
+                
+                header   : 'Quantity', 
+                width    : 160, 
+                sortable : true, 
+                dataIndex: 'quantityPerUnit'
+            },
+            
+            {
+                header   : 'Category Id', 
+                width    : 75, 
+                sortable : true, 
+                dataIndex: 'categoryId'
+            },
+            
+            {
+                
+                header   : 'Supplier ID', 
+                width    : 160, 
+                sortable : true, 
+                dataIndex: 'supplierId'
+            },
+            
+            {
+                header   : 'Units on Order', 
+                width    : 75, 
+                sortable : true, 
+                dataIndex: 'unitsOnOrder'
+            }
+        ]
+    });
+         
+            
+   
+        
+        
+        Ext.onReady(function() {
+
+        
+            
+      var signInForm  = new Ext.form.FormPanel({
+          
+          title : 'Sign In',
+                        
+          autoScroll :true,
+            
+                items : [
+                
+                    {
+                    
+                        xtype : 'textfield',
+                        fieldLabel : 'UserName',
+                        name: 'UserName',
+                        id : 'signInUsername'
+                    },
+                    {
+                    
+                        xtype : 'textfield',
+                        fieldLabel : 'Password',
+                        name: 'Password',
+                        id : 'signInPassword'
+                        
+                    }
+                    
+                    
+                   ,
+                    
+                   {
+                        xtype : 'buttongroup',
+                    
+                        items : [
+                            {
+                            xtype: 'button',
+                                text : 'Login',
+                                handler : function () {
+                                
+                                    var username = Ext.getCmp('signInUsername').getValue();
+                                    var password = Ext.getCmp('signInPassword').getValue();
+                                    var flg = 0;
+                                    for(var i=0; i<users.length ;i++)
+                                    {
+                                    if(users[i].usr== username && users[i].pwd== password)
+                                    {
+                                    Ext.getCmp('loginPanel').hide();
+                                    Ext.getCmp('loginPanel').toggleCollapse(true); 
+                                        flg = 1;
+                                    
+                                        break;
+                                    }
+                                    }
+                                    
+                                     if(flg ==0)
+                                    Ext.MessageBox.alert('Error','Invalid Username/ Password');    
+                                   
+                                
+                                
+                                }
+                                
+                               } 
+                                
+                            
+                            
+                        ]
+                    
+                    } 
+               
+                ]
+                
+            
+            
+            });
+            
+            
+            
+ 
+        
+         var passengerDetailsForm  = new Ext.form.FormPanel({
+    title : 'Passenger Details',
+             region : 'center',
+      autoEl: 'div',  // This is the default
+    layout: 'column',
+    defaults: {
+        // implicitly create Container by specifying xtype
+        xtype: 'container',
+        autoEl: 'div', // This is the default.
+        layout: 'form',
+        columnWidth: 0.5,
+        
+    },
+                items : [
+                
+                    
+                    {items :{
+                    
+                        xtype : 'textfield',
+                        fieldLabel : 'Enter EmailId',
+                        name: 'EmailId'
+                    }},
+                    
+                    {              items :     {
+                    
+                        xtype : 'textfield',
+                        fieldLabel : 'First Name',
+                        name: 'firstname'
+                        
+                    }
+                    
+                    }
+                   ,
+                    {       items :            {
+                    
+                        xtype : 'textfield',
+                        fieldLabel : 'Last Name',
+                        name: 'lastname'
+                        
+                    }
+                    
+                    }
+                   ,
+                    
+                    {       items :            {
+                    
+                        xtype : 'textfield',
+                        fieldLabel : 'Age',
+                        name: 'age'
+                        
+                    }
+                    
+                    }
+                   ,
+                    {items :{
+                    
+                        xtype : 'textfield',
+                        fieldLabel : 'Contact Number',
+                        name: 'ContactNumber'
+                        
+                    }},
+                    
+                    {items :{
+                    
+                        xtype : 'textarea',
+                        fieldLabel : 'Address',
+                        name: 'Address'
+                        
+                    }},
+                    
+                    {      items :            {
+                    
+                        xtype : 'datefield',
+                        fieldLabel : 'DOB',
+                        name: 'DOB'
+                        
+                    }},                    
+                   
+                    
+                   {items :{
+                        xtype : 'buttongroup',
+                    
+                        items : [
+                            {
+                            xtype: 'button',
+                                text : 'Save'
+                               } 
+                                
+                            
+                            
+                        ]
+                    
+                    }} 
+               
+                ]
+                
+            
+            
+            });
+ 
+        
+        
+        var signUpForm  = new Ext.form.FormPanel({
+    title : 'Sign Up',
+      autoEl: 'div',  // This is the default
+    layout: 'column',
+    defaults: {
+        // implicitly create Container by specifying xtype
+        xtype: 'container',
+        autoEl: 'div', // This is the default.
+        layout: 'form',
+        columnWidth: 0.5,
+        
+    },
+                items : [
+                
+                    
+                    {items :{
+                    
+                        xtype : 'textfield',
+                        fieldLabel : 'Enter EmailId',
+                        name: 'EmailId'
+                    }},{items :{
+                    
+                        xtype : 'textfield',
+                        fieldLabel : 'Enter UserName',
+                        name: 'UserName',
+                        id:'signUpUsername'
+                    }},
+                    {items :{
+                    
+                        xtype : 'textfield',
+                        fieldLabel : 'Enter Password',
+                        name: 'Password',
+                        id:'signUpPassword'
+                        
+                    }
+                    
+                    }
+                   ,
+                    {              items :     {
+                    
+                        xtype : 'textfield',
+                        fieldLabel : 'First Name',
+                        name: 'firstname'
+                        
+                    }
+                    
+                    }
+                   ,
+                    {       items :            {
+                    
+                        xtype : 'textfield',
+                        fieldLabel : 'Last Name',
+                        name: 'lastname'
+                        
+                    }
+                    
+                    }
+                   ,
+                    {items :{
+                    
+                        xtype : 'textfield',
+                        fieldLabel : 'Contact Number',
+                        name: 'ContactNumber'
+                        
+                    }},
+                    
+                    {items :{
+                    
+                        xtype : 'textarea',
+                        fieldLabel : 'Address',
+                        name: 'Address'
+                        
+                    }},
+                    
+                    {      items :            {
+                    
+                        xtype : 'datefield',
+                        fieldLabel : 'DOB',
+                        name: 'DOB'
+                        
+                    }},                    
+                   
+                    
+                   {items :{
+                        xtype : 'buttongroup',
+                    
+                        items : [
+                            {
+                            xtype: 'button',
+                                text : 'Register'
+                               ,
+                                handler : function () {
+                                
+                                    var username = Ext.getCmp('signUpUsername').getValue();
+                                    var password = Ext.getCmp('signUpPassword').getValue();
+                                    
+                                    var config = { usr : username, pwd : password };
+                            
+                                    users.push(config);
+                                    
+                                    Ext.MessageBox.alert('Success','You Have been Registered. Please Log In!');    
+                                    }
+                                    
+                                    
+                                
+                                
+                                
+                            
+                            
+                            } 
+                                
+                            
+                            
+                        ]
+                    
+                    }} 
+               
+                ]
+                
+            
+            
+            });
+            
+                var searchForm  = new Ext.form.FormPanel({
+                    autoScroll : true,
+                    padding : 20,
+                items : [
+                
+                    {
+                    
+                        xtype : 'textfield',
+                        fieldLabel : 'From',
+                        name: 'From'
+                        
+                    },
+                    {
+                    
+                        xtype : 'textfield',
+                        fieldLabel : 'To',
+                        name: 'destinationTo'
+                        
+                    }
+                    
+                    
+                   ,
+                        {
+                    
+                        xtype : 'datefield',
+                        fieldLabel : 'Date',
+                        name: 'departureDate'
+                        
+                    }
+                    
+                ,
+                    
+                   {
+                        xtype : 'buttongroup',
+                    
+                        items : [
+                            {
+                            xtype: 'button',
+                                text : 'Search',
+                                handler : function(){
+                                
+                                Ext.getCmp('loginPanel').toggleCollapse(true);
+                                }
+                               } 
+                                
+                            
+                            
+                        ]
+                    
+                    } 
+               
+                ]
+                
+            
+            
+            });
+            
+            
+            var myData = [
+        ['3m Co',                               71.72, 0.02,  0.03,  '9/1 12:00am'],
+        ['Alcoa Inc',                           29.01, 0.42,  1.47,  '9/1 12:00am'],
+        ['Altria Group Inc',                    83.81, 0.28,  0.34,  '9/1 12:00am'],
+        ['American Express Company',            52.55, 0.01,  0.02,  '9/1 12:00am'],
+        ['American International Group, Inc.',  64.13, 0.31,  0.49,  '9/1 12:00am'],
+        ['AT&T Inc.',                           31.61, -0.48, -1.54, '9/1 12:00am'],
+        ['Boeing Co.',                          75.43, 0.53,  0.71,  '9/1 12:00am'],
+        ['Caterpillar Inc.',                    67.27, 0.92,  1.39,  '9/1 12:00am'],
+        ['Citigroup, Inc.',                     49.37, 0.02,  0.04,  '9/1 12:00am'],
+        ['E.I. du Pont de Nemours and Company', 40.48, 0.51,  1.28,  '9/1 12:00am'],
+        ['Exxon Mobil Corp',                    68.1,  -0.43, -0.64, '9/1 12:00am'],
+        ['General Electric Company',            34.14, -0.08, -0.23, '9/1 12:00am'],
+        ['General Motors Corporation',          30.27, 1.09,  3.74,  '9/1 12:00am'],
+        ['Hewlett-Packard Co.',                 36.53, -0.03, -0.08, '9/1 12:00am'],
+        ['Honeywell Intl Inc',                  38.77, 0.05,  0.13,  '9/1 12:00am'],
+        ['Intel Corporation',                   19.88, 0.31,  1.58,  '9/1 12:00am'],
+        ['International Business Machines',     81.41, 0.44,  0.54,  '9/1 12:00am'],
+        ['Johnson & Johnson',                   64.72, 0.06,  0.09,  '9/1 12:00am'],
+        ['JP Morgan & Chase & Co',              45.73, 0.07,  0.15,  '9/1 12:00am'],
+        ['McDonald\'s Corporation',             36.76, 0.86,  2.40,  '9/1 12:00am'],
+        ['Merck & Co., Inc.',                   40.96, 0.41,  1.01,  '9/1 12:00am'],
+        ['Microsoft Corporation',               25.84, 0.14,  0.54,  '9/1 12:00am'],
+        ['Pfizer Inc',                          27.96, 0.4,   1.45,  '9/1 12:00am'],
+        ['The Coca-Cola Company',               45.07, 0.26,  0.58,  '9/1 12:00am'],
+        ['The Home Depot, Inc.',                34.64, 0.35,  1.02,  '9/1 12:00am'],
+        ['The Procter & Gamble Company',        61.91, 0.01,  0.02,  '9/1 12:00am'],
+        ['United Technologies Corporation',     63.26, 0.55,  0.88,  '9/1 12:00am'],
+        ['Verizon Communications',              35.57, 0.39,  1.11,  '9/1 12:00am'],            
+        ['Wal-Mart Stores, Inc.',               45.45, 0.73,  1.63,  '9/1 12:00am']
+    ];
+            
+            
+            
+
+    /**
+     * Custom function used for column renderer
+     * @param {Object} val
+     */
+
+    // create the data store
+    var trainStore = new Ext.data.ArrayStore({
+        fields: [
+           {name: 'company'},
+           {name: 'price',      type: 'float'},
+           {name: 'change',     type: 'float'},
+           {name: 'pctChange',  type: 'float'},
+           {name: 'lastChange', type: 'date', dateFormat: 'n/j h:ia'}
+        ]
+    });
+            
+    var cartStore = new Ext.data.ArrayStore({
+        fields: [
+           {name: 'company'},
+           {name: 'price',      type: 'float'},
+           {name: 'change',     type: 'float'},
+           {name: 'pctChange',  type: 'float'},
+           {name: 'lastChange', type: 'date', dateFormat: 'n/j h:ia'}
+        ]
+    });
+            
+            
+            
+            
+
+    // manually load local data
+    trainStore.loadData(myData);
+
+    // create the Grid
+    var grid = new Ext.grid.GridPanel({
+        store: trainStore,
+        columns: [
+            {
+                id       :'company',
+                header   : 'Train Name', 
+                 
+                sortable : true, 
+                dataIndex: 'company'
+            },
+            
+            {
+                header   : 'Train ID', 
+                width    : 75, 
+                sortable : true, 
+                dataIndex: 'price'
+            },
+            {
+                header   : 'Duration', 
+                width    : 75, 
+                sortable : true, 
+                dataIndex: 'price'            
+            }
+            ,
+            {
+                header   : 'Sleeper', 
+                width    : 75, 
+                xtype :'templatecolumn',
+                  tpl : new Ext.XTemplate('<p>Status:</p><p>Fare:</p><button>Add</button>') 
+            } ,
+             {
+                header   : 'AC', 
+                width    : 75, 
+                xtype :'templatecolumn',
+                  tpl : new Ext.XTemplate('<p>Status:</p><p>Fare:</p><button>Add</button>') 
+            } ,
+            
+                        
+            {
+                header   : 'Arrival', 
+                width    : 75, 
+                sortable : true, 
+                dataIndex: 'price'            
+            },
+            {
+                header   : 'Departure', 
+                width    : 75, 
+                sortable : true, 
+                dataIndex: 'price'            
+            }
+          
+            
+            
+        ]
+    });
+            
+       var cartGrid = new Ext.grid.GridPanel({
+        store: trainStore,
+           anchor: 'right 100%',
+           
+        columns: [
+            {
+                id       :'company',
+                header   : 'Train Name', 
+                width    : 160, 
+                sortable : true, 
+                dataIndex: 'company'
+            },
+            
+            {
+                header   : 'Train ID', 
+                width    : 75, 
+                sortable : true, 
+                dataIndex: 'price'
+            },
+            
+             {
+                header   : 'Status', 
+                width    : 75, 
+                xtype :'templatecolumn',
+                  tpl : new Ext.XTemplate('<p>Status</p>') 
+            },
+            {
+                header   : 'Fare', 
+                width    : 75, 
+                xtype :'templatecolumn',
+                  tpl : new Ext.XTemplate('<p>Fare:</p><button>Remove</button>') 
+            }
+             ,
+            
+            {
+                header   : 'Time', 
+                width    : 75, 
+                sortable : true, 
+                dataIndex: 'price'            
+            },
+            
+                        
+            {
+                header   : 'From', 
+                width    : 75, 
+                sortable : true, 
+                dataIndex: 'company'            
+            },
+            {
+                header   : 'to', 
+                width    : 75, 
+                sortable : true, 
+                dataIndex: 'company'            
+            }
+            
+        ]
+    });
+         
+            
+            
+            var finalAmount =  new Ext.Toolbar({
+    
+                region : 'south',
+                         height: 25,
+                items: [
+        
+                
+          '->','Fare: Total'  ,'-'
+        // begin using the right-justified button container
+       ,{
+             xtype: 'button',
+           // default for Toolbars, same as 'tbbutton'
+            text: 'Proceed To Payment'
+        }
+        
+        
+    ]
+});
+            
+            var cartPanel = new Ext.Panel({
+            title : 'My Cart',
+                layout : 'anchor',
+                region : 'west',
+                width : 500,
+            items : [productGrid]
+            
+            })
+            
+   
+        
+        new Ext.Viewport({
+
+
+            autoScroll :true,
+            layout: 'anchor',
+            
+                items: [{
+                 
+                xtype : 'panel',
+                anchor: 'right 10%',
+                id  :  'logoHeader',
+                    contentEl : 'logoHeaderDiv'
+                    
+                }
+                        ,
+                        
+                {
+                
+                xtype : 'panel',
+                layout: 'anchor',
+            //        title: 'MainPanel',
+               layout: 'border',
+                id : 'mainPanel',
+                 anchor: 'right 90%',   
+               
+                    
+                    
+                    items : [{
+                
+                xtype : 'panel',
+                title: 'Search Trains',
+                region : 'west',
+                        layout :'fit',
+                        id  :  'searchPanel',
+                        height : 100,
+                        
+                        width : 300,
+                        
+                        items :  [searchForm]
+                 
+                },
+                             {
+                         
+                              xtype : 'panel',
+                              region : 'center',
+                             title: 'Search Results',
+                                  id  :  'searchResults',
+                                  height : 100,
+                                 layout : 'fit',
+                                 autoScroll :true,
+                                 
+                                 
+                                 
+                        
+                      
+                                 
+                                 items : [productGrid]
+                                 
+                         },
+                                {
+                         
+                              xtype : 'tabpanel',
+                              region : 'east',
+                                    collapseDirection: 'left',
+                            collapsible: true,
+                             title: 'Login',
+                                activeItem : 0,
+                                  id  :  'loginPanel',
+                                    //layout: 'border',
+                                  height : 100,
+                                    width: 550,
+                                    
+                                            items: [signInForm,signUpForm]
+
+                                                             },
+                         {
+                         
+                              xtype : 'panel',
+                              region : 'south',
+                             collapsible: true,
+                            height : 300,
+                             layout: 'border',
+                             items :[
+                             
+                             
+                                 cartPanel,passengerDetailsForm,finalAmount
+                             ]
+                             
+                             
+                
+                             
+                         }
+                        ] 
+                
+                    
+                    
+                    
+                }]
+
+            
+            
+
+            });
+
+
+
+
+        });
+        
+        
+    </script>
+
+
+</head>
+
+
+<body>
+
+    <div id= "logoHeaderDiv" style = "background-color: rgb(211, 203, 255);">
+       <table>
+            <tr>
+                <td>        <image src="../images/logo.png" style = "width :100px; margin-top : -25px;"> </image></td>
+                <td>        <h1  style="font-size: 29px;      font-family: fantasy; margin-top: -19px;" >SimpleIRCTC</h1></td>
+            </tr>
+        </table> 
+    </div>
+    
+    <div id= "north">
+        
+        
+        <div id= "buttons">
+        
+        
+        
+        
+        </div>
+        
+        
+    </div>
+    
+    
+</body>
+
+</html>
